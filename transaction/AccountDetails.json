@@ -1,0 +1,100 @@
+[
+    {
+        "accountNo": 101,
+        "name": "Nikita Bansode",
+        "balance": 82541.85239836319,
+        "datetime": [
+            2026,
+            6,
+            23,
+            13,
+            49,
+            35,
+            917406000
+        ]
+    },
+    {
+        "accountNo": 102,
+        "name": "Tanya",
+        "balance": 21523.31046960032,
+        "datetime": [
+            2026,
+            6,
+            23,
+            13,
+            49,
+            35,
+            917406000
+        ]
+    },
+    {
+        "accountNo": 103,
+        "name": "Narendra Modi",
+        "balance": 8090.0,
+        "datetime": [
+            2026,
+            6,
+            24,
+            10,
+            59,
+            34,
+            564278100
+        ]
+    },
+    {
+        "accountNo": 104,
+        "name": "Donald Trump",
+        "balance": 8200.0,
+        "datetime": [
+            2026,
+            6,
+            24,
+            11,
+            12,
+            0,
+            601146800
+        ]
+    },
+    {
+        "accountNo": 105,
+        "name": "Eknath Shinde",
+        "balance": 5060.0,
+        "datetime": [
+            2026,
+            6,
+            24,
+            17,
+            56,
+            26,
+            485353800
+        ]
+    },
+    {
+        "accountNo": 106,
+        "name": "Alia Bhatt",
+        "balance": 10303.767123287676,
+        "datetime": [
+            2026,
+            6,
+            25,
+            17,
+            31,
+            34,
+            917445100
+        ]
+    },
+    {
+        "accountNo": 107,
+        "name": "Sanjay Raut",
+        "balance": 50000.0,
+        "datetime": [
+            2026,
+            6,
+            26,
+            11,
+            49,
+            23,
+            829962100
+        ]
+    }
+]
