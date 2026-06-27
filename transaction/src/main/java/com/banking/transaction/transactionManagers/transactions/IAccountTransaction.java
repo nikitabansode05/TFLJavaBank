@@ -7,6 +7,6 @@ import com.banking.transaction.entities.Account;
 
 public interface IAccountTransaction {
     Account showAccountDetails(int accountNo);
-    boolean createAccount(int accNo,String name,double balance);
+    boolean createAccount(int accNo,String name);
     List<Transaction> getStatement(int accountNo);
 }

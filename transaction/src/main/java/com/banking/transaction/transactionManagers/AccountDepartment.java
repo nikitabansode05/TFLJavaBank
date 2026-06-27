@@ -12,10 +12,10 @@ import com.banking.transaction.entities.Account;
 import com.banking.transaction.entities.Transaction;
 import com.banking.transaction.listeners.AccountListener;
 import com.banking.transaction.listeners.AccountListenerImpl;
-import com.banking.transaction.repositories.accountFileManager.AccountFileIO;
-import com.banking.transaction.repositories.accountFileManager.AccountFileIOImpl;
-import com.banking.transaction.repositories.transactionFileManager.TransactionsFileIO;
-import com.banking.transaction.repositories.transactionFileManager.TransactionsFileIOImpl;
+import com.banking.transaction.repositories.accounts.AccountFileIOManager;
+import com.banking.transaction.repositories.accounts.AccountFileIOManagerImpl;
+import com.banking.transaction.repositories.transactions.TransactionsFileIOManager;
+import com.banking.transaction.repositories.transactions.TransactionsFileIOManagerImpl;
 import com.banking.transaction.transactionManagers.transactions.IAccountTransaction;
 import com.banking.transaction.transactionManagers.transactions.IDepositTransaction;
 import com.banking.transaction.transactionManagers.transactions.IWithdrawTransaction;
@@ -27,13 +27,13 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
     @Override
     public boolean credit(double creditAmount, int accountNo) {
-        AccountFileIO accountFile = new AccountFileIOImpl();
-        TransactionsFileIO transactionsFile = new TransactionsFileIOImpl();
+        AccountFileIOManager accountSerializer = new AccountFileIOManagerImpl();
+        TransactionsFileIOManager transactionSerializer = new TransactionsFileIOManagerImpl();
         AccountListener listener = new AccountListenerImpl();
 
         try {
-            List<Account> accounts = accountFile.deserializeAccount();
-            List<Transaction> transactions = transactionsFile.deserializeTransaction();
+            List<Account> accounts = accountSerializer.deserialize();
+            List<Transaction> transactions = transactionSerializer.deserialize();
 
             Account account = accounts.stream().filter(a -> a.getAccountNo() == accountNo).findFirst().orElse(null);
 
@@ -45,8 +45,8 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
             transactions.add(new Transaction(accountNo,"credited",LocalDateTime.now(),creditAmount,newBalance));
 
-            transactionsFile.serializeTransaction(transactions);
-            accountFile.serializeAccount(accounts);
+            transactionSerializer.serialize(transactions);
+            accountSerializer.serialize(accounts);
             listener.onCredit(creditAmount, newBalance);
 
             return true;
@@ -59,13 +59,13 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
     @Override
     public boolean debit(double debitAmount,int accountNo){
-        AccountFileIO accountFile=new AccountFileIOImpl();
-        TransactionsFileIO transactionsFile=new TransactionsFileIOImpl();
+        AccountFileIOManager accountSerializer=new AccountFileIOManagerImpl();
+        TransactionsFileIOManager transactionSerializer=new TransactionsFileIOManagerImpl();
         AccountListener listener=new AccountListenerImpl();
 
         try{
-            List<Account> accountList=accountFile.deserializeAccount();
-            List<Transaction> transactions=transactionsFile.deserializeTransaction();
+            List<Account> accountList=accountSerializer.deserialize();
+            List<Transaction> transactions=transactionSerializer.deserialize();
            
             Account account = accountList.stream().filter(a -> a.getAccountNo() == accountNo).findFirst().orElse(null);
 
@@ -75,8 +75,8 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
             transactions.add(new Transaction(account.getAccountNo(),"debited",LocalDateTime.now(),debitAmount,account.getBalance()));
            
-            transactionsFile.serializeTransaction(transactions);
-            accountFile.serializeAccount(accountList);
+            transactionSerializer.serialize(transactions);
+            accountSerializer.serialize(accountList);
             listener.onDebit(debitAmount,newBalance);
             
             return true;
@@ -89,10 +89,9 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
     @Override
     public Account showAccountDetails(int accountNo){
-        AccountFileIO accountFile=new AccountFileIOImpl();
-       
+        AccountFileIOManager accountSerializer=new AccountFileIOManagerImpl();
         try{
-            List<Account> accountList=accountFile.deserializeAccount();
+            List<Account> accountList=accountSerializer.deserialize();
             Account account=accountList.stream().filter(a->a.getAccountNo()==accountNo).findFirst().orElse(null);                  
             return account;
         }catch(Exception e){
@@ -102,14 +101,13 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
     }
 
     @Override
-    public boolean createAccount(int accountNo,String name,double balance){
-        AccountFileIO accountFile=new AccountFileIOImpl();
-        List<Account> accountList=accountFile.deserializeAccount();
-
-        Account account = new Account(accountNo,name,balance,LocalDateTime.now());
+    public boolean createAccount(int accountNo,String name){
+        AccountFileIOManager accountSerializer=new AccountFileIOManagerImpl();
+        List<Account> accountList=accountSerializer.deserialize();
+        Account account = new Account(accountNo,name,0.0,LocalDateTime.now());
         try{
             accountList.add(account);
-            accountFile.serializeAccount(accountList);
+            accountSerializer.serialize(accountList);
             return true;
         }catch(Exception e){
         e.printStackTrace();
@@ -119,8 +117,8 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
    @Override
     public List<Transaction> getStatement(int accountNo) {
-        TransactionsFileIO transactionsFile = new TransactionsFileIOImpl();
-        List<Transaction> transactions = transactionsFile.deserializeTransaction();
+        TransactionsFileIOManager transactionSerializer = new TransactionsFileIOManagerImpl();
+        List<Transaction> transactions = transactionSerializer.deserialize();
         List<Transaction> acctransactions = transactions.stream().filter(o -> o.getAccountNo() == accountNo).toList();
         int count = acctransactions.size();
         System.out.println(count);
@@ -133,8 +131,8 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
     @Override
     public boolean transaction(int accountNo1,int accountNo2,double amount){
         try{
-            AccountFileIO accountFile=new AccountFileIOImpl();
-            List<Account> accountList=accountFile.deserializeAccount();
+            AccountFileIOManager accountSerializer=new AccountFileIOManagerImpl();
+            List<Account> accountList=accountSerializer.deserialize();
             accountList.stream().filter(a -> a.getAccountNo() == accountNo1).forEach(a -> debit(amount, accountNo1));
             accountList.stream().filter(a -> a.getAccountNo() == accountNo2).forEach(a -> credit(amount, accountNo2));
             return true;
@@ -146,15 +144,11 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
     @Override
     public double applyInterest(int accountNo, double interest) {
-
-        AccountFileIO accountFile = new AccountFileIOImpl();
-        TransactionsFileIO transactionsFile = new TransactionsFileIOImpl();
-
-        List<Account> accounts = accountFile.deserializeAccount();
-        List<Transaction> transactions = transactionsFile.deserializeTransaction();
-
-        List<Transaction> log = transactions.stream().filter(o -> o.getAccountNo() == accountNo).toList();    // Java 16+ (Java 8: collect(Collectors.toList()))
-
+        AccountFileIOManager accountSerializer = new AccountFileIOManagerImpl();
+        TransactionsFileIOManager transactionSerializer = new TransactionsFileIOManagerImpl();
+        List<Account> accounts = accountSerializer.deserialize();
+        List<Transaction> transactions = transactionSerializer.deserialize();
+        List<Transaction> log = transactions.stream().filter(o -> o.getAccountNo() == accountNo).toList();   
         if (log.isEmpty()) {
             double accountInterest=applyInterestToAccountWithoutTransaction(accountNo, interest);
             if(accountInterest>0.0){
@@ -162,15 +156,11 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
             }
             return accountInterest;
         }
-
         double totalInterest = 0;
-
         for (int i = 0; i < log.size() - 1; i++) {
             totalInterest += interestCalculation(log.get(i).getDatetime().toLocalDate(),log.get(i + 1).getDatetime().toLocalDate(),interest,log.get(i).getBalance());
         }
-
         double currentBalance = accounts.stream().filter(a -> a.getAccountNo() == accountNo).findFirst().map(Account::getBalance).orElse(0.0);
-
         totalInterest += interestCalculation(log.get(log.size() - 1).getDatetime().toLocalDate(),LocalDate.now(),interest,currentBalance);
         credit(totalInterest, accountNo);
         return totalInterest;
@@ -178,8 +168,8 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
 
     @Override
     public void applyInteresttoAll(double interest){  
-        AccountFileIO accountFile=new AccountFileIOImpl();
-        List<Account> accountList=accountFile.deserializeAccount();
+        AccountFileIOManager accountFile=new AccountFileIOManagerImpl();
+        List<Account> accountList=accountFile.deserialize();
         accountList.forEach(a -> applyInterest(a.getAccountNo(), interest));
     }
 
@@ -196,8 +186,8 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
     }
 
     public double applyInterestToAccountWithoutTransaction(int accountNo,double interest){
-        AccountFileIO accountFile=new AccountFileIOImpl();
-        List<Account> accountList=accountFile.deserializeAccount();
+        AccountFileIOManager accountFile=new AccountFileIOManagerImpl();
+        List<Account> accountList=accountFile.deserialize();
         double calculatedInterest=0;
         for(Account a:accountList){
             if(a.getAccountNo()==accountNo){
@@ -208,7 +198,6 @@ public class AccountDepartment implements IDepositTransaction,IWithdrawTransacti
                 calculatedInterest=interestCalculation(startDate, endDate, interest, a.getBalance());
             }
         }
-
         return calculatedInterest;
     }
 

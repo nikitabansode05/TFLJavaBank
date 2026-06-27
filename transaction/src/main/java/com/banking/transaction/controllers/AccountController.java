@@ -1,4 +1,4 @@
-package com.banking.transaction.handlers;
+package com.banking.transaction.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,11 +14,11 @@ import com.banking.transaction.transactionManagers.AccountDepartment;
 import reactor.core.publisher.Mono;
 
 @Component
-public class AccountHandler {
+public class AccountController {
 
     private final AccountDepartment accountDepartment;
 
-    public AccountHandler(AccountDepartment accountDepartment){
+    public AccountController(AccountDepartment accountDepartment){
         this.accountDepartment = accountDepartment;
     }
 
@@ -41,8 +41,7 @@ public class AccountHandler {
             Account updatedAccount = accountDepartment.showAccountDetails(accountNo);
             return ServerResponse.ok().bodyValue(updatedAccount);
         } else {
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .bodyValue("Something went wrong");
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Something went wrong");
         }
     }
 
@@ -55,8 +54,7 @@ public class AccountHandler {
             Account updatedAccount = accountDepartment.showAccountDetails(accountNo);
             return ServerResponse.ok().bodyValue(updatedAccount);
         } else {
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .bodyValue("Something went wrong");
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Something went wrong");
         }
     }
 
@@ -65,14 +63,11 @@ public class AccountHandler {
       .flatMap(body->{
         int accountNo=body.getAccountNo();
         String name=body.getName();
-        double balance=body.getBalance();
-
-        boolean status=accountDepartment.createAccount(accountNo,name,balance);
+        boolean status=accountDepartment.createAccount(accountNo,name);
         if(status){
             return ServerResponse.ok().bodyValue("Account created successfully");
         }else{
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .bodyValue("Something went wrong");
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Something went wrong");
         }
       });
     }
@@ -91,8 +86,7 @@ public class AccountHandler {
         if(status){
             return ServerResponse.ok().bodyValue("Transaction succed!!!");
         }else{
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .bodyValue("Something went wrong");
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Something went wrong");
         }
     }
 

@@ -1,4 +1,4 @@
-package com.banking.transaction.repositories.transactionFileManager;
+package com.banking.transaction.repositories.transactions;
 
 import java.io.File;
 import java.util.List;
@@ -9,17 +9,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 
-public class TransactionsFileIOImpl implements TransactionsFileIO{
+public class TransactionsFileIOManagerImpl implements TransactionsFileIOManager{
 
     ObjectMapper mapper=new ObjectMapper();
     File transactionsFile=new File("Transactions.json");
     
-    public TransactionsFileIOImpl(){
+    public TransactionsFileIOManagerImpl(){
         mapper.registerModule(new JavaTimeModule());
     }
 
     @Override
-    public void serializeTransaction(List<Transaction> transactions){
+    public void serialize(List<Transaction> transactions){
         try{
             mapper.writeValue(transactionsFile,transactions);
         }catch(Exception e){
@@ -28,7 +28,7 @@ public class TransactionsFileIOImpl implements TransactionsFileIO{
     }
 
     @Override
-    public List<Transaction> deserializeTransaction(){
+    public List<Transaction> deserialize(){
         try{
             List<Transaction> transactions = mapper.readValue(transactionsFile, new TypeReference<List<Transaction>>() {});
             return transactions;
